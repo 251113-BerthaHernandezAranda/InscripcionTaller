@@ -22,7 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +68,7 @@ fun MainPreview() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(
     modifier: Modifier,
@@ -85,6 +90,7 @@ fun MainView(
 
     val profiles = stringArrayResource(R.array.profiles)
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(profiles[0]) }
+    var expanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val isShowKeyboard = WindowInsets.isImeVisible
@@ -207,35 +213,38 @@ fun MainView(
                         )
                     }
                 }
-                //Disciplina
-                Column(
-                    Modifier
-                        .padding(dimensionResource(R.dimen.common_padding_min))
-                        .selectableGroup()
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = dimensionResource(R.dimen.common_padding_min))
                 ) {
-                    Text(
-                        stringResource(R.string.section_occupation),
-                        style = Typography.labelLarge
+                    OutlinedTextField(
+                        value = selectedOption,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.section_occupation)) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
-                    profiles.forEach { text ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(dimensionResource(R.dimen.rb_row_height))
-                                .selectable(
-                                    selected = (text == selectedOption),
-                                    onClick = { onOptionSelected(text) },
-                                    role = Role.RadioButton
-                                ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (text == selectedOption),
-                                onClick = null
-                            )
-                            Text(
-                                text,
-                                modifier = Modifier.padding(start = dimensionResource(R.dimen.common_padding_default))
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        profiles.forEach { text ->
+                            DropdownMenuItem(
+                                text = { Text(text) },
+                                onClick = {
+                                    onOptionSelected(text)
+                                    expanded = false
+                                }
                             )
                         }
                     }
